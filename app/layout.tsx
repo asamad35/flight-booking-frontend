@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { AppProvider } from "@/contexts/AppContext";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -16,7 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn("bg-background", inter.className)}>{children}</body>
+      <body className={cn("bg-background", inter.className)}>
+        <AppProvider>{children}</AppProvider>
+      </body>
     </html>
   );
 }

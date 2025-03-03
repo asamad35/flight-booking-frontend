@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/utils/supabase/client";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { useAppContext } from "@/contexts/AppContext";
 
 export interface User {
   id: string;
@@ -13,27 +13,26 @@ export interface User {
 }
 
 interface NavigationProps {
-  user: User | null;
-  onUserChange?: (user: User | null) => void;
+  user?: User | null; // Make user optional since we'll get it from context
 }
 
-export default function Navigation({ user, onUserChange }: NavigationProps) {
+export default function Navigation({ user: userFromProps }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const supabase = createClient();
+  const { user, signOut } = useAppContext();
+
+  // Use user from props if provided, otherwise use from context
+  const currentUser = userFromProps ?? user;
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Error logging out");
-    } else {
-      if (onUserChange) {
-        onUserChange(null);
-      }
-      toast.success("Logged out successfully");
-    }
+    await signOut();
+    toast.success("Logged out successfully");
   };
 
   const handleGoogleLogin = async () => {
+    // We'll keep this part the same since it's redirecting to OAuth
+    const { createClient } = await import("@/utils/supabase/client");
+    const supabase = createClient();
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -43,8 +42,6 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
 
     if (error) {
       toast.error("Error logging in with Google");
-    } else {
-      toast.success("Logged in successfully");
     }
   };
 
@@ -105,9 +102,9 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
           <Button
             variant="ghost"
             className="hidden md:flex items-center gap-2"
-            onClick={user ? handleLogout : handleGoogleLogin}
+            onClick={currentUser ? handleLogout : handleGoogleLogin}
           >
-            {!user && (
+            {!currentUser && (
               <svg
                 className="h-4 w-4"
                 xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +128,7 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
                 />
               </svg>
             )}
-            {user ? "Logout" : "Login with Google"}
+            {currentUser ? "Logout" : "Login with Google"}
           </Button>
           <Button>Book Now</Button>
 
@@ -188,9 +185,9 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
             <Button
               variant="outline"
               className="justify-start mt-2 flex items-center gap-2"
-              onClick={user ? handleLogout : handleGoogleLogin}
+              onClick={currentUser ? handleLogout : handleGoogleLogin}
             >
-              {!user && (
+              {!currentUser && (
                 <svg
                   className="h-4 w-4"
                   xmlns="http://www.w3.org/2000/svg"
@@ -214,7 +211,7 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
                   />
                 </svg>
               )}
-              {user ? "Logout" : "Login with Google"}
+              {currentUser ? "Logout" : "Login with Google"}
             </Button>
           </nav>
         </div>
