@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { addDays, format, isAfter, isBefore } from "date-fns";
 import { CalendarDays, MapPin, Search } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 // Define the form data type
 type FlightFormData = {
@@ -27,6 +28,8 @@ type FlightFormData = {
 };
 
 export default function FlightSearch() {
+  const router = useRouter();
+
   // Initialize today's date but set time to beginning of day for consistent comparison
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -61,7 +64,24 @@ export default function FlightSearch() {
   // Form submission handler
   const onSubmit = (data: FlightFormData) => {
     console.log("Form submitted:", data);
-    // Handle the flight search logic here
+
+    // Build query parameters
+    const queryParams = new URLSearchParams({
+      from: data.from,
+      to: data.to,
+      departureDate: format(data.departureDate, "yyyy-MM-dd"),
+      tripType: data.tripType,
+      passengers: data.passengers,
+      class: data.class,
+    });
+
+    // Add return date only for round trips
+    if (data.tripType === "roundTrip" && data.returnDate) {
+      queryParams.append("returnDate", format(data.returnDate, "yyyy-MM-dd"));
+    }
+
+    // Navigate to search results page
+    router.push(`/search-flight?${queryParams.toString()}`);
   };
 
   return (
