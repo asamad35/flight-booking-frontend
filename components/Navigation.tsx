@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { useRouter } from "next/navigation";
 
 export interface User {
   id: string;
@@ -22,7 +23,7 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
 
   // Use user from props if provided, otherwise use from context
   const currentUser = userFromProps ?? user;
-
+  const router = useRouter();
   const handleLogout = async () => {
     await signOut();
     toast.success("Logged out successfully");
@@ -48,7 +49,10 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
