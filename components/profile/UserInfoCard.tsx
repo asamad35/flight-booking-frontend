@@ -25,7 +25,6 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
   const handleSave = () => {
     // In a real app, you would save changes to the database and split the full name
     // into first_name and last_name fields
-    console.log("Saving changes:", { fullName });
     setIsEditing(false);
     // You would update the user object here by splitting the full name
     // const [first_name, ...lastNameParts] = fullName.split(' ');

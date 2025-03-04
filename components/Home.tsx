@@ -6,8 +6,6 @@ import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/layout/HeroSection";
 import SpecialOffers from "@/components/layout/SpecialOffers";
 import Testimonials from "@/components/layout/Testimonials";
-import { useAppContext } from "@/contexts/AppContext";
-
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-sky-50 to-white">

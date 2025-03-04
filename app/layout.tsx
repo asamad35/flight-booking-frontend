@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppProvider } from "@/contexts/AppContext";
 import Navigation from "@/components/layout/Navigation";
+import { FlightProvider } from "@/contexts/FlightContext";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +22,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn("bg-background", inter.className)}>
-        <AppProvider>
-          <Navigation />
-          <main>{children}</main>
-        </AppProvider>
+        <FlightProvider>
+          <AppProvider>
+            <Navigation />
+            <main>{children}</main>
+          </AppProvider>
+        </FlightProvider>
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );

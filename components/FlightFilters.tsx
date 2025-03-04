@@ -23,40 +23,44 @@ export interface FlightFilterState {
   };
 }
 
-export default function FlightFilters() {
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
-  const [stops, setStops] = useState({
-    direct: true,
-    oneStop: true,
-    multiStop: false,
-  });
-  const [airlines, setAirlines] = useState({
-    delta: true,
-    united: true,
-    american: true,
-    spirit: true,
-    jetBlue: true,
-  });
-  const [departureTime, setDepartureTime] = useState({
-    morning: true,
-    afternoon: true,
-    evening: true,
-  });
+export default function FlightFilters({
+  filters,
+  onFilterChange,
+}: {
+  filters?: FlightFilterState;
+  onFilterChange?: (filters: FlightFilterState) => void;
+  availableAirlines?: Record<string, boolean>;
+  priceRange?: [number, number];
+} = {}) {
+  const defaultFilters: FlightFilterState = {
+    priceRange: [0, 2000],
+    stops: { direct: true, oneStop: true, multiStop: true },
+    airlines: {
+      delta: true,
+      united: true,
+      american: true,
+      spirit: true,
+      jetBlue: true,
+    },
+    departureTime: { morning: true, afternoon: true, evening: true },
+  };
+
+  // Create a single state that derives from filters prop or defaults
+  const [localFilters, setLocalFilters] = useState<FlightFilterState>(
+    filters || defaultFilters
+  );
 
   // Apply filters only when the button is clicked
   const applyFilters = () => {
-    const filterState: FlightFilterState = {
-      priceRange,
-      stops,
-      airlines,
-      departureTime,
-    };
+    onFilterChange?.(localFilters);
+  };
 
-    // Dispatch custom event with filter state
-    const event = new CustomEvent("flightFiltersChanged", {
-      detail: { filters: filterState },
-    });
-    window.dispatchEvent(event);
+  // Helper function to update a specific part of the filters
+  const updateFilter = (key: keyof FlightFilterState, value: any) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   return (
@@ -72,17 +76,20 @@ export default function FlightFilters() {
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">
-                  ${priceRange[0]} - ${priceRange[1]}
+                  ${localFilters.priceRange[0]} - ${localFilters.priceRange[1]}
                 </span>
               </div>
               <input
                 type="range"
-                min="0"
-                max="2000"
-                step="50"
-                value={priceRange[1]}
+                min={filters?.priceRange?.[0] || 0}
+                max={filters?.priceRange?.[1] || 2000}
+                step="1"
+                value={localFilters.priceRange[1]}
                 onChange={(e) =>
-                  setPriceRange([priceRange[0], parseInt(e.target.value)])
+                  updateFilter("priceRange", [
+                    localFilters.priceRange[0],
+                    parseInt(e.target.value),
+                  ])
                 }
                 className="w-full accent-blue-600"
               />
@@ -97,9 +104,12 @@ export default function FlightFilters() {
                 <input
                   type="checkbox"
                   id="direct"
-                  checked={stops.direct}
+                  checked={localFilters.stops.direct}
                   onChange={(e) =>
-                    setStops({ ...stops, direct: e.target.checked })
+                    updateFilter("stops", {
+                      ...localFilters.stops,
+                      direct: e.target.checked,
+                    })
                   }
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
@@ -111,9 +121,12 @@ export default function FlightFilters() {
                 <input
                   type="checkbox"
                   id="oneStop"
-                  checked={stops.oneStop}
+                  checked={localFilters.stops.oneStop}
                   onChange={(e) =>
-                    setStops({ ...stops, oneStop: e.target.checked })
+                    updateFilter("stops", {
+                      ...localFilters.stops,
+                      oneStop: e.target.checked,
+                    })
                   }
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
@@ -125,9 +138,12 @@ export default function FlightFilters() {
                 <input
                   type="checkbox"
                   id="multiStop"
-                  checked={stops.multiStop}
+                  checked={localFilters.stops.multiStop}
                   onChange={(e) =>
-                    setStops({ ...stops, multiStop: e.target.checked })
+                    updateFilter("stops", {
+                      ...localFilters.stops,
+                      multiStop: e.target.checked,
+                    })
                   }
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
@@ -142,25 +158,27 @@ export default function FlightFilters() {
           <div className="mb-6">
             <h3 className="font-medium mb-3">Airlines</h3>
             <div className="space-y-2">
-              {Object.entries(airlines).map(([airline, checked]) => (
-                <div key={airline} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={airline}
-                    checked={checked}
-                    onChange={(e) =>
-                      setAirlines({
-                        ...airlines,
-                        [airline]: e.target.checked,
-                      })
-                    }
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <Label htmlFor={airline} className="ml-2 capitalize">
-                    {airline === "jetBlue" ? "JetBlue" : airline}
-                  </Label>
-                </div>
-              ))}
+              {Object.entries(localFilters.airlines).map(
+                ([airline, checked]) => (
+                  <div key={airline} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={airline}
+                      checked={checked}
+                      onChange={(e) =>
+                        updateFilter("airlines", {
+                          ...localFilters.airlines,
+                          [airline]: e.target.checked,
+                        })
+                      }
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <Label htmlFor={airline} className="ml-2 capitalize">
+                      {airline}
+                    </Label>
+                  </div>
+                )
+              )}
             </div>
           </div>
 
@@ -172,10 +190,10 @@ export default function FlightFilters() {
                 <input
                   type="checkbox"
                   id="morning"
-                  checked={departureTime.morning}
+                  checked={localFilters.departureTime.morning}
                   onChange={(e) =>
-                    setDepartureTime({
-                      ...departureTime,
+                    updateFilter("departureTime", {
+                      ...localFilters.departureTime,
                       morning: e.target.checked,
                     })
                   }
@@ -189,10 +207,10 @@ export default function FlightFilters() {
                 <input
                   type="checkbox"
                   id="afternoon"
-                  checked={departureTime.afternoon}
+                  checked={localFilters.departureTime.afternoon}
                   onChange={(e) =>
-                    setDepartureTime({
-                      ...departureTime,
+                    updateFilter("departureTime", {
+                      ...localFilters.departureTime,
                       afternoon: e.target.checked,
                     })
                   }
@@ -206,10 +224,10 @@ export default function FlightFilters() {
                 <input
                   type="checkbox"
                   id="evening"
-                  checked={departureTime.evening}
+                  checked={localFilters.departureTime.evening}
                   onChange={(e) =>
-                    setDepartureTime({
-                      ...departureTime,
+                    updateFilter("departureTime", {
+                      ...localFilters.departureTime,
                       evening: e.target.checked,
                     })
                   }

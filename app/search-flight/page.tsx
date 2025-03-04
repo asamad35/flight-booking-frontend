@@ -1,77 +1,103 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Toaster } from "react-hot-toast";
-import Navigation from "@/components/layout/Navigation";
-import Footer from "@/components/layout/Footer";
 import FlightResults from "@/components/FlightResults";
-import FlightFilters from "@/components/FlightFilters";
 import FlightSortOptions from "@/components/FlightSortOptions";
 import FlightAlternatives from "@/components/flights/FlightAlternatives";
+import Footer from "@/components/layout/Footer";
+import { useFlightContext } from "@/contexts/FlightContext";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function SearchFlightPage() {
-  const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
+  const { updateSearchParams, searchFlights, flights, loading } =
+    useFlightContext();
 
-  // Get search parameters from URL
-  const from = searchParams.get("from") || "";
-  const to = searchParams.get("to") || "";
-  const departureDate = searchParams.get("departureDate") || "";
-  const returnDate = searchParams.get("returnDate") || "";
-  const passengers = searchParams.get("passengers") || "1";
-  const cabinClass = searchParams.get("class") || "economy";
-  const tripType = searchParams.get("tripType") || "roundTrip";
+  const urlSearchParams = useSearchParams();
+  const from = urlSearchParams.get("from") || "";
+  const to = urlSearchParams.get("to") || "";
+  const departureDate = urlSearchParams.get("departureDate") || "";
+  const returnDate = urlSearchParams.get("returnDate") || "";
+  const passengers = urlSearchParams.get("passengers") || "1";
+  const cabinClass = urlSearchParams.get("cabinClass") || "Economy";
+  const tripType = urlSearchParams.get("tripType") || "OneWay";
 
-  // Simulating loading state
+  const extractedParams = {
+    from,
+    to,
+    departureDate,
+    returnDate,
+    passengers,
+    cabinClass,
+    tripType,
+  };
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    // Create an async function and immediately invoke it
+    (async () => {
+      await searchFlights(extractedParams);
+    })();
+  }, [urlSearchParams]);
+
+  const [formData, setFormData] = useState({
+    from: from,
+    to: to,
+    departureDate: departureDate,
+    returnDate: returnDate,
+    passengers: passengers,
+    cabinClass: cabinClass,
+    tripType: tripType,
+  });
+
+  // Handle input changes
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    updateSearchParams(formData);
+    await searchFlights(formData);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-sky-50 to-white">
-      <Toaster position="bottom-center" />
-      <Navigation />
-
       <main className="flex-1 container py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Flight Results</h1>
           <p className="text-gray-500 mt-2">
-            {from} to {to} • {departureDate}{" "}
-            {returnDate ? `- ${returnDate}` : ""} • {passengers} passenger
-            {parseInt(passengers) > 1 ? "s" : ""} •{" "}
-            {cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1)}
+            {formData.from} to {formData.to} • {formData.departureDate}{" "}
+            {formData.returnDate ? `- ${formData.returnDate}` : ""} •{" "}
+            {formData.passengers} passenger
+            {parseInt(formData.passengers) > 1 ? "s" : ""} •{" "}
+            {formData.cabinClass.charAt(0).toUpperCase() +
+              formData.cabinClass.slice(1)}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar with filters */}
-          <div className="lg:col-span-1">
-            <FlightFilters />
-          </div>
-
+        <div className="w-full">
           {/* Main content with sorting and results */}
-          <div className="lg:col-span-3">
+          <div>
             {/* Only show alternatives, not insights */}
             {!loading && (
               <>
-                <FlightAlternatives from={from} to={to} />
+                <FlightAlternatives from={formData.from} to={formData.to} />
               </>
             )}
 
             <FlightSortOptions />
             <FlightResults
               loading={loading}
-              from={from}
-              to={to}
-              departureDate={departureDate}
-              returnDate={returnDate}
-              passengers={passengers}
-              cabinClass={cabinClass}
-              tripType={tripType}
+              from={formData.from}
+              to={formData.to}
+              departureDate={formData.departureDate}
+              returnDate={formData.returnDate}
+              passengers={formData.passengers}
+              cabinClass={formData.cabinClass}
+              tripType={formData.tripType}
+              flights={flights}
             />
           </div>
         </div>

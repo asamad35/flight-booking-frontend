@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -13,6 +13,10 @@ import { Button } from "@/components/ui/button";
 import PassengerForm from "./PassengerForm";
 import PaymentForm from "./PaymentForm";
 import { Flight } from "@/types/flight";
+import { useFlightContext } from "@/contexts/FlightContext";
+import { BookingData } from "@/contexts/FlightContext";
+import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -41,6 +45,8 @@ export default function BookingModal({
   flight,
   passengerCount,
 }: BookingModalProps) {
+  const searchParams = useSearchParams();
+  const { bookFlight } = useFlightContext();
   const [step, setStep] = useState<"passengers" | "payment" | "confirmation">(
     "passengers"
   );
@@ -113,8 +119,33 @@ export default function BookingModal({
 
   const onSubmit = async (data: FormValues) => {
     console.log("Booking submitted:", data);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    onClose();
+    const from = searchParams.get("from") || flight.departureAirport;
+    const to = searchParams.get("to") || flight.arrivalAirport;
+    const tripType = searchParams.get("tripType") || "oneway";
+    const departureDate =
+      searchParams.get("departureDate") || flight.departureDate;
+    const returnDate = searchParams.get("returnDate") || null;
+    const cabinClass = searchParams.get("cabinClass") || "economy";
+    const bookingData: BookingData = {
+      flightId: flight.id,
+      from: from,
+      to: to,
+      tripType: tripType,
+      departureDate: departureDate,
+      returnDate: returnDate || undefined,
+      passengers: passengerCount,
+      cabinClass: cabinClass,
+      passengerDetails: data.passengers,
+      paymentDetails: data.payment,
+    };
+
+    try {
+      await bookFlight(bookingData);
+      onClose();
+    } catch (error) {
+      toast.error("Booking failed");
+    }
+    toast.success("Booking successful, Please check your profile for ticket");
   };
 
   const renderStepIndicator = () => (

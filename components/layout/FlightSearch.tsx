@@ -15,6 +15,9 @@ import { addDays, format, isAfter, isBefore } from "date-fns";
 import { CalendarDays, MapPin, Search } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { useFlightContext } from "@/contexts/FlightContext";
+import SearchableSelect from "@/components/SearchableSelect";
+import { TripType, CabinClass } from "@/enums";
 
 // Define the form data type
 type FlightFormData = {
@@ -23,8 +26,8 @@ type FlightFormData = {
   departureDate: Date;
   returnDate: Date;
   passengers: string;
-  class: string;
-  tripType: string;
+  cabinClass: CabinClass;
+  tripType: TripType;
 };
 
 export default function FlightSearch() {
@@ -38,7 +41,6 @@ export default function FlightSearch() {
 
   // Set up React Hook Form with default values
   const {
-    register,
     handleSubmit,
     control,
     formState: { errors },
@@ -46,13 +48,13 @@ export default function FlightSearch() {
     setValue,
   } = useForm<FlightFormData>({
     defaultValues: {
-      tripType: "roundTrip",
+      tripType: TripType.RoundTrip,
       from: "",
       to: "",
       departureDate: today,
       returnDate: tomorrow,
       passengers: "1",
-      class: "economy",
+      cabinClass: CabinClass.Economy,
     },
     mode: "onChange",
   });
@@ -62,25 +64,22 @@ export default function FlightSearch() {
   const returnDate = watch("returnDate");
 
   // Form submission handler
-  const onSubmit = (data: FlightFormData) => {
-    console.log("Form submitted:", data);
-
-    // Build query parameters
-    const queryParams = new URLSearchParams({
-      from: data.from,
-      to: data.to,
+  const onSubmit = async (data: FlightFormData) => {
+    // Convert Date objects to strings for API compatibility
+    const params = {
+      ...data,
       departureDate: format(data.departureDate, "yyyy-MM-dd"),
-      tripType: data.tripType,
-      passengers: data.passengers,
-      class: data.class,
+      returnDate: data.returnDate
+        ? format(data.returnDate, "yyyy-MM-dd")
+        : undefined,
+    };
+
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) queryParams.set(key, value.toString());
     });
 
-    // Add return date only for round trips
-    if (data.tripType === "roundTrip" && data.returnDate) {
-      queryParams.append("returnDate", format(data.returnDate, "yyyy-MM-dd"));
-    }
-
-    // Navigate to search results page
+    // Navigate with query parameters
     router.push(`/search-flight?${queryParams.toString()}`);
   };
 
@@ -104,11 +103,14 @@ export default function FlightSearch() {
                     className="flex gap-4"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="roundTrip" id="roundTrip" />
+                      <RadioGroupItem
+                        value={TripType.RoundTrip}
+                        id="roundTrip"
+                      />
                       <Label htmlFor="roundTrip">Round Trip</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="oneWay" id="oneWay" />
+                      <RadioGroupItem value={TripType.OneWay} id="oneWay" />
                       <Label htmlFor="oneWay">One Way</Label>
                     </div>
                   </RadioGroup>
@@ -125,41 +127,38 @@ export default function FlightSearch() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">From</label>
-                  <div className="flex items-center border rounded-md pl-3 bg-white">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <Input
-                      {...register("from", {
-                        required: "Origin location is required",
-                      })}
-                      placeholder="City or Airport"
-                      className="border-0 focus-visible:ring-0"
-                    />
-                  </div>
-                  {errors.from && (
-                    <p className="text-xs text-red-500">
-                      {errors.from.message}
-                    </p>
-                  )}
+                  <Controller
+                    control={control}
+                    name="from"
+                    rules={{ required: "Origin location is required" }}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select origin city"
+                        type="origin"
+                        error={errors.from?.message}
+                      />
+                    )}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">To</label>
-                  <div className="flex items-center border rounded-md pl-3 bg-white">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <Input
-                      {...register("to", {
-                        required: "Destination location is required",
-                        validate: (value, formValues) =>
-                          value !== formValues.from ||
-                          "Origin and destination cannot be the same",
-                      })}
-                      placeholder="City or Airport"
-                      className="border-0 focus-visible:ring-0"
-                    />
-                  </div>
-                  {errors.to && (
-                    <p className="text-xs text-red-500">{errors.to.message}</p>
-                  )}
+                  <Controller
+                    control={control}
+                    name="to"
+                    rules={{ required: "Destination location is required" }}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select destination city"
+                        type="destination"
+                        error={errors.to?.message}
+                      />
+                    )}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -207,7 +206,7 @@ export default function FlightSearch() {
 
                               // If return date is before departure date, update it
                               if (
-                                tripType === "roundTrip" &&
+                                tripType === TripType.RoundTrip &&
                                 date &&
                                 returnDate &&
                                 isBefore(returnDate, date)
@@ -238,11 +237,11 @@ export default function FlightSearch() {
                     name="returnDate"
                     rules={{
                       required:
-                        tripType === "roundTrip"
+                        tripType === TripType.RoundTrip
                           ? "Return date is required for round trips"
                           : false,
                       validate: (value) => {
-                        if (tripType === "oneWay") return true;
+                        if (tripType === TripType.OneWay) return true;
                         if (!value) return "Return date is required";
                         if (!departureDate) return true;
                         return (
@@ -259,10 +258,10 @@ export default function FlightSearch() {
                             className={`w-full justify-start text-left font-normal ${
                               errors.returnDate ? "border-red-500" : ""
                             }`}
-                            disabled={tripType === "oneWay"}
+                            disabled={tripType === TripType.OneWay}
                           >
                             <CalendarDays className="mr-2 h-4 w-4" />
-                            {field.value && tripType !== "oneWay"
+                            {field.value && tripType !== TripType.OneWay
                               ? format(field.value, "PPP")
                               : "Select date"}
                           </Button>
@@ -284,7 +283,7 @@ export default function FlightSearch() {
                       </Popover>
                     )}
                   />
-                  {errors.returnDate && tripType === "roundTrip" && (
+                  {errors.returnDate && tripType === TripType.RoundTrip && (
                     <p className="text-xs text-red-500">
                       {errors.returnDate.message}
                     </p>
@@ -343,7 +342,7 @@ export default function FlightSearch() {
                   <div className="relative rounded-md border border-gray-300 overflow-hidden">
                     <Controller
                       control={control}
-                      name="class"
+                      name="cabinClass"
                       rules={{ required: "Travel class is required" }}
                       render={({ field }) => (
                         <select
@@ -351,10 +350,11 @@ export default function FlightSearch() {
                           onChange={(e) => field.onChange(e.target.value)}
                           className="w-full appearance-none bg-transparent py-2 pl-3 pr-10 focus:outline-none focus:ring-0"
                         >
-                          <option value="economy">Economy</option>
-                          <option value="premium">Premium Economy</option>
-                          <option value="business">Business</option>
-                          <option value="first">First Class</option>
+                          <option value={CabinClass.Economy}>Economy</option>
+                          <option value={CabinClass.Business}>Business</option>
+                          <option value={CabinClass.FirstClass}>
+                            First Class
+                          </option>
                         </select>
                       )}
                     />
@@ -375,9 +375,9 @@ export default function FlightSearch() {
                       </svg>
                     </div>
                   </div>
-                  {errors.class && (
+                  {errors.cabinClass && (
                     <p className="text-xs text-red-500">
-                      {errors.class.message}
+                      {errors.cabinClass.message}
                     </p>
                   )}
                 </div>

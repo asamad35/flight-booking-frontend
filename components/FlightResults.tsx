@@ -11,6 +11,7 @@ import {
 import FlightSkeleton from "./flights/FlightSkeleton";
 import EmptyResults from "./flights/EmptyResults";
 import FlightCard from "./flights/FlightCard";
+import FlightFilters from "./FlightFilters";
 
 export default function FlightResults({
   loading,
@@ -21,6 +22,7 @@ export default function FlightResults({
   passengers,
   cabinClass,
   tripType,
+  flights: propFlights,
 }: FlightResultsProps) {
   const [allFlights, setAllFlights] = useState<Flight[]>([]);
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([]);
@@ -46,13 +48,52 @@ export default function FlightResults({
     },
   });
 
-  // Generate mock flights when component mounts
+  // Extract price range and airlines for filter initializations
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  const [availableAirlines, setAvailableAirlines] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Generate dynamic filters based on available flights
+  const generateDynamicFilters = (flights: Flight[]) => {
+    if (!flights.length) return;
+
+    // Extract price range
+    const prices = flights.map((flight) => flight.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    // Extract unique airlines
+    const airlinesObject: Record<string, boolean> = {};
+    flights.forEach((flight) => {
+      airlinesObject[flight.airline.toLowerCase()] = true;
+    });
+
+    // Update filters and metadata
+    setFilters((prev) => ({
+      ...prev,
+      priceRange: [minPrice, maxPrice],
+      airlines: airlinesObject,
+    }));
+    setPriceRange([minPrice, maxPrice]);
+    setAvailableAirlines(airlinesObject);
+  };
+
+  // Use flights from props if available, otherwise generate mock flights
   useEffect(() => {
     if (!loading) {
-      const generatedFlights = generateFlights(from, to, departureDate, 15);
-      setAllFlights(generatedFlights);
+      let flightsToUse: Flight[] = [];
+
+      if (propFlights && propFlights.length > 0) {
+        flightsToUse = propFlights;
+      } else {
+        flightsToUse = generateFlights(from, to, departureDate, 15);
+      }
+
+      setAllFlights(flightsToUse);
+      generateDynamicFilters(flightsToUse);
     }
-  }, [loading, from, to, departureDate]);
+  }, [loading, from, to, departureDate, propFlights]);
 
   // Listen for sort option changes from FlightSortOptions
   useEffect(() => {
@@ -75,33 +116,17 @@ export default function FlightResults({
     };
   }, []);
 
-  // Listen for filter changes from FlightFilters
-  useEffect(() => {
-    const handleFilterChange = (e: CustomEvent) => {
-      if (e.detail && e.detail.filters) {
-        setFilters(e.detail.filters);
-      }
-    };
+  // Handle filter changes from FlightFilters component
+  const handleFilterChange = (newFilters: FlightFilterState) => {
+    setFilters(newFilters);
+  };
 
-    window.addEventListener(
-      "flightFiltersChanged",
-      handleFilterChange as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        "flightFiltersChanged",
-        handleFilterChange as EventListener
-      );
-    };
-  }, []);
-
-  // Apply filters and sorting whenever dependencies change
+  // Apply filters and sorting to flights
   useEffect(() => {
     if (allFlights.length > 0) {
-      const filtered = applyFilters(allFlights, filters);
-      const sorted = sortFlights(filtered, sortOption);
-      setFilteredFlights(sorted);
+      let filtered = applyFilters(allFlights, filters);
+      filtered = sortFlights(filtered, sortOption);
+      setFilteredFlights(filtered);
     }
   }, [allFlights, filters, sortOption]);
 
@@ -109,19 +134,32 @@ export default function FlightResults({
     return <FlightSkeleton />;
   }
 
-  if (filteredFlights.length === 0) {
-    return <EmptyResults />;
-  }
-
   return (
-    <div className="space-y-4">
-      {filteredFlights.map((flight) => (
-        <FlightCard
-          key={flight.id}
-          flight={flight}
-          passengerCount={parseInt(passengers)}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="md:col-span-1">
+        <FlightFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          availableAirlines={availableAirlines}
+          priceRange={priceRange}
         />
-      ))}
+      </div>
+      {filteredFlights.length === 0 && (
+        <div className="md:col-span-2 space-y-4">
+          <EmptyResults />
+        </div>
+      )}
+      {filteredFlights.length > 0 && (
+        <div className="md:col-span-2 space-y-4">
+          {filteredFlights.map((flight) => (
+            <FlightCard
+              key={flight.id}
+              flight={flight}
+              passengerCount={parseInt(passengers)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

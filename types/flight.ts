@@ -25,4 +25,5 @@ export interface FlightResultsProps {
   passengers: string;
   cabinClass: string;
   tripType: string;
+  flights?: Flight[];
 }
