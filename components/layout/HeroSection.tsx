@@ -20,7 +20,7 @@ export default function HeroSection() {
       <div className="container relative z-10 py-20 md:py-32">
         <div className="max-w-2xl text-white">
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-            Discover the World with SkyWings
+            Discover the World with Sky Wings
           </h1>
           <p className="mt-6 text-lg text-white/90">
             Find and book your perfect flight to destinations worldwide. Best

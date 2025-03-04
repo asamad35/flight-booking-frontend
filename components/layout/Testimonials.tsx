@@ -19,17 +19,17 @@ export default function Testimonials({
     {
       name: "Emily Johnson",
       photo: "https://randomuser.me/api/portraits/women/44.jpg",
-      text: "SkyWings made booking my international flight so easy. Their prices were the best I found, and customer service was excellent when I needed to make changes.",
+      text: "Sky Wings made booking my international flight so easy. Their prices were the best I found, and customer service was excellent when I needed to make changes.",
     },
     {
       name: "David Chen",
       photo: "https://randomuser.me/api/portraits/men/32.jpg",
-      text: "I've been using SkyWings for business travel for years. Their user-friendly interface and reliable service keep me coming back. Highly recommended!",
+      text: "I've been using Sky Wings for business travel for years. Their user-friendly interface and reliable service keep me coming back. Highly recommended!",
     },
     {
       name: "Sophia Williams",
       photo: "https://randomuser.me/api/portraits/women/68.jpg",
-      text: "The flexible booking options saved me when I had to reschedule my trip last minute. SkyWings offers great protection plans that are actually worth it.",
+      text: "The flexible booking options saved me when I had to reschedule my trip last minute. Sky Wings offers great protection plans that are actually worth it.",
     },
   ],
 }: TestimonialsProps) {

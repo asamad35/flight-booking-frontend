@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/button";
 export default function NotFound() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-sky-50 to-white">
-      <Navigation />
-
       <main className="flex-1 container py-16 flex flex-col items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
           <div className="bg-blue-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
