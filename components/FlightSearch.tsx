@@ -85,7 +85,10 @@ export default function FlightSearch() {
   };
 
   return (
-    <section className="container -mt-16 relative z-20 mb-20">
+    <section
+      id="flight-search"
+      className="container -mt-16 relative z-20 mb-20"
+    >
       <Card className="border-none shadow-xl">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit(onSubmit)}>
