@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import Navigation from "@/components/layout/Navigation";
+import Footer from "@/components/layout/Footer";
 import FlightResults from "@/components/FlightResults";
 import FlightFilters from "@/components/FlightFilters";
 import FlightSortOptions from "@/components/FlightSortOptions";

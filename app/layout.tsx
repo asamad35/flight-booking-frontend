@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppProvider } from "@/contexts/AppContext";
+import Navigation from "@/components/layout/Navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn("bg-background", inter.className)}>
-        <AppProvider>{children}</AppProvider>
+        <AppProvider>
+          <Navigation />
+          <main>{children}</main>
+        </AppProvider>
       </body>
     </html>
   );
