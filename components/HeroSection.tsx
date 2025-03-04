@@ -1,25 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
-interface HeroSectionProps {
-  onBookNowClick?: () => void;
-}
-
-export default function HeroSection({ onBookNowClick }: HeroSectionProps) {
-  const router = useRouter();
-
-  const handleBookNowClick = () => {
-    if (onBookNowClick) {
-      // If we're on the home page and have the direct handler
-      onBookNowClick();
-    } else {
-      // If we're on another page, navigate to home with parameter
-      router.push("/?scroll=search");
-    }
-  };
-
+export default function HeroSection() {
   return (
     <section className="relative">
       <div
@@ -44,11 +27,7 @@ export default function HeroSection({ onBookNowClick }: HeroSectionProps) {
             prices and exclusive deals available.
           </p>
           <div className="mt-8 flex gap-4">
-            <Button
-              onClick={handleBookNowClick}
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
               Book Now
             </Button>
             <Button
