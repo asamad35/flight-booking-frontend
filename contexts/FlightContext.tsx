@@ -165,7 +165,6 @@ export const FlightProvider: React.FC<{ children: React.ReactNode }> = ({
   // Book selected flight
   const bookFlight = async (data: BookingData) => {
     const bookingResult = await apiBookFlight(data);
-    // await refreshUserBookings();
     return bookingResult;
   };
 

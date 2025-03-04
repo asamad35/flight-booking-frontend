@@ -17,6 +17,7 @@ import { useFlightContext } from "@/contexts/FlightContext";
 import { BookingData } from "@/contexts/FlightContext";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { flightApi } from "@/lib/api/flight-api";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export default function BookingModal({
   passengerCount,
 }: BookingModalProps) {
   const searchParams = useSearchParams();
-  const { bookFlight } = useFlightContext();
+
   const [step, setStep] = useState<"passengers" | "payment" | "confirmation">(
     "passengers"
   );
@@ -140,12 +141,14 @@ export default function BookingModal({
     };
 
     try {
-      await bookFlight(bookingData);
+      // await bookFlight(bookingData);
+      await flightApi.bookFlight(bookingData);
+      toast.success("Booking successful, Please check your profile for ticket");
+      setStep("passengers");
       onClose();
     } catch (error) {
       toast.error("Booking failed");
     }
-    toast.success("Booking successful, Please check your profile for ticket");
   };
 
   const renderStepIndicator = () => (
