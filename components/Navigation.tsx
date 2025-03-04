@@ -1,16 +1,24 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useAppContext } from "@/contexts/AppContext";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface User {
   id: string;
   email?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface NavigationProps {
@@ -24,6 +32,10 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
   // Use user from props if provided, otherwise use from context
   const currentUser = userFromProps ?? user;
   const router = useRouter();
+
+  // Check if user is admin (assuming the user object has a role or isAdmin property)
+  const isAdmin = currentUser?.role === "admin" || currentUser?.isAdmin;
+
   const handleLogout = async () => {
     await signOut();
     toast.success("Logged out successfully");
@@ -103,12 +115,12 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            className="hidden md:flex items-center gap-2"
-            onClick={currentUser ? handleLogout : handleGoogleLogin}
-          >
-            {!currentUser && (
+          {!currentUser && (
+            <Button
+              variant="ghost"
+              className="hidden md:flex items-center gap-2"
+              onClick={handleGoogleLogin}
+            >
               <svg
                 className="h-4 w-4"
                 xmlns="http://www.w3.org/2000/svg"
@@ -131,10 +143,40 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
                   d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
                 />
               </svg>
-            )}
-            {currentUser ? "Logout" : "Login with Google"}
-          </Button>
-          <Button>Book Now</Button>
+              Login with Google
+            </Button>
+          )}
+
+          {currentUser ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  {currentUser.first_name && currentUser.last_name
+                    ? `${currentUser.first_name} ${currentUser.last_name}`
+                    : "Profile"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push("/profile")}>
+                  <User className="h-4 w-4 mr-2" />
+                  View Profile
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => router.push("/dashboard")}>
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button onClick={handleGoogleLogin}>Login</Button>
+          )}
 
           {/* Mobile menu button */}
           <Button
@@ -186,12 +228,39 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
             >
               About
             </Link>
-            <Button
-              variant="outline"
-              className="justify-start mt-2 flex items-center gap-2"
-              onClick={currentUser ? handleLogout : handleGoogleLogin}
-            >
-              {!currentUser && (
+            {currentUser ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm font-medium hover:text-blue-600 transition-colors flex items-center"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  View Profile
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/dashboard"
+                    className="text-sm font-medium hover:text-blue-600 transition-colors flex items-center"
+                  >
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                )}
+                <Button
+                  variant="outline"
+                  className="justify-start mt-2 flex items-center gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                className="justify-start mt-2 flex items-center gap-2"
+                onClick={handleGoogleLogin}
+              >
                 <svg
                   className="h-4 w-4"
                   xmlns="http://www.w3.org/2000/svg"
@@ -214,9 +283,9 @@ export default function Navigation({ user: userFromProps }: NavigationProps) {
                     d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
                   />
                 </svg>
-              )}
-              {currentUser ? "Logout" : "Login with Google"}
-            </Button>
+                Login with Google
+              </Button>
+            )}
           </nav>
         </div>
       )}
