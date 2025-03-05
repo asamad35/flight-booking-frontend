@@ -178,7 +178,7 @@ export default function Navigation() {
                 )}
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  <Link href="/">Logout</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
