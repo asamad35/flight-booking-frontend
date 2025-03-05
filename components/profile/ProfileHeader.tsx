@@ -28,7 +28,6 @@ function formatMemberSince(dateString?: string): string {
 }
 
 export default function ProfileHeader({ user, bookings }: ProfileHeaderProps) {
-  console.log(user, "user");
   // Count bookings by month (simplified version without chart)
   const totalBookings = bookings.length;
 

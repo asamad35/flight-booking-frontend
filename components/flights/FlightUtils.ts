@@ -23,7 +23,6 @@ export const applyFilters = (flights: Flight[], filterState: any) => {
     if (!filterState.airlines[airlineKey]) {
       return false;
     }
-    console.log(flight, flight.departure_time);
     const hour = parseInt(flight.departure_time.split(":")[0]);
     const isMorning = hour >= 5 && hour < 12;
     const isAfternoon = hour >= 12 && hour < 17;

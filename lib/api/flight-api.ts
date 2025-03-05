@@ -20,7 +20,6 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     // Extract token from cookies instead of localStorage
     const cookies = document.cookie.split(";");
     const token = extractSupabaseSession(cookies);
-    console.log(token, "token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

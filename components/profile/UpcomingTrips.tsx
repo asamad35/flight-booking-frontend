@@ -1,11 +1,36 @@
 "use client";
 
-import { ArrowRight, Calendar, Clock } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowRight,
+  Calendar,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Ticket,
+  User,
+  CreditCard,
+  Plane,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Booking, UpcomingTripsProps } from "@/types/profile";
+import { TripType } from "@/enums";
+import Link from "next/link";
 
 export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
-  console.log(trips, "upcoming trips");
+  // State to track which trip cards are expanded
+  const [expandedTrips, setExpandedTrips] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  // Toggle expanded state for a trip
+  const toggleTripDetails = (tripId: string) => {
+    setExpandedTrips((prev) => ({
+      ...prev,
+      [tripId]: !prev[tripId],
+    }));
+  };
+
   // Format date to be more readable
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -29,6 +54,11 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
     return differenceInDays;
   };
 
+  // Format card number to show only last 4 digits
+  const formatCardNumber = (cardNumber: string) => {
+    return `•••• ${cardNumber.slice(-4)}`;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
       <div className="p-6">
@@ -45,12 +75,16 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
             <p className="text-gray-400 text-sm mt-1">
               Book your next adventure today
             </p>
-            <Button className="mt-4">Find Flights</Button>
+            <Link href="/">
+              <Button className="mt-4">Find Flights</Button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-6">
             {trips.map((trip) => {
               const daysRemaining = calculateDaysRemaining(trip.departure_date);
+              const isExpanded = expandedTrips[trip.id] || false;
+
               return (
                 <div
                   key={trip.id}
@@ -61,10 +95,29 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                       <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
                         {trip.flight_number}
                       </span>
-                      <h3 className="text-lg font-medium text-gray-800 mt-2">
-                        {trip.from}{" "}
-                        <ArrowRight className="inline h-4 w-4 mx-1" /> {trip.to}
-                      </h3>
+                      {trip.trip_type === TripType.OneWay ? (
+                        <h3 className="text-lg font-medium text-gray-800 mt-2">
+                          {trip.from}{" "}
+                          <ArrowRight className="inline h-4 w-4 mx-1" />{" "}
+                          {trip.to}
+                        </h3>
+                      ) : (
+                        <div className="mt-2">
+                          <h3 className="text-lg font-medium text-gray-800">
+                            {trip.from}{" "}
+                            <ArrowRight className="inline h-4 w-4 mx-1" />{" "}
+                            {trip.to}
+                          </h3>
+                          <div className="flex items-center text-sm text-gray-500 mt-1">
+                            <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mr-1">
+                              Return
+                            </span>
+                            {trip.to}{" "}
+                            <ArrowRight className="inline h-3 w-3 mx-1" />{" "}
+                            {trip.from}
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center mt-1 text-gray-500">
                         <Calendar className="h-4 w-4 mr-1" />
                         <span>{formatDate(trip.departure_date)}</span>
@@ -98,6 +151,220 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                       Check In
                     </Button>
                   </div>
+
+                  {/* Trip Details Toggle Button */}
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={() => toggleTripDetails(trip.id)}
+                      className="text-sm text-blue-600 hover:text-blue-800 inline-flex items-center px-4 py-2 rounded-full 
+                        hover:bg-blue-50 transition-colors"
+                    >
+                      {isExpanded ? "Hide Details" : "View Trip Details"}
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Expandable Trip Details Section */}
+                  {isExpanded && (
+                    <div className="mt-4 pt-4 border-t border-dashed animate-in fade-in duration-300">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column */}
+                        <div className="space-y-6">
+                          {/* Booking Information */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-semibold text-gray-700 flex items-center mb-3">
+                              <Ticket className="h-4 w-4 mr-2" /> Booking
+                              Information
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="text-gray-500">Booking ID</div>
+                              <div className="font-medium">
+                                {trip.booking_id}
+                              </div>
+                              <div className="text-gray-500">Booking Date</div>
+                              <div>{formatDate(trip.booking_date)}</div>
+                              <div className="text-gray-500">Status</div>
+                              <div>
+                                <span className="px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                                  {trip.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Passenger Details */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-semibold text-gray-700 flex items-center mb-3">
+                              <User className="h-4 w-4 mr-2" /> Passenger
+                              Details
+                            </h4>
+                            {trip.passenger_details &&
+                              trip.passenger_details.map((passenger, idx) => (
+                                <div
+                                  key={idx}
+                                  className="grid grid-cols-2 gap-3 text-sm"
+                                >
+                                  <div className="text-gray-500">Name</div>
+                                  <div className="font-medium">
+                                    {passenger.fullName}
+                                  </div>
+                                  <div className="text-gray-500">ID Number</div>
+                                  <div>{passenger.idNumber}</div>
+                                  <div className="text-gray-500">Phone</div>
+                                  <div>{passenger.phoneNumber}</div>
+                                </div>
+                              ))}
+                          </div>
+
+                          {/* Payment Information */}
+                          {trip.payment_details && (
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <h4 className="text-sm font-semibold text-gray-700 flex items-center mb-3">
+                                <CreditCard className="h-4 w-4 mr-2" /> Payment
+                                Information
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className="text-gray-500">Card</div>
+                                <div>
+                                  {formatCardNumber(
+                                    trip.payment_details.cardNumber
+                                  )}
+                                </div>
+                                <div className="text-gray-500">
+                                  Name on Card
+                                </div>
+                                <div>{trip.payment_details.nameOnCard}</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="space-y-6">
+                          {/* Flight Details */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-semibold text-gray-700 flex items-center mb-3">
+                              <Plane className="h-4 w-4 mr-2" /> Flight Details
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="text-gray-500">Airline</div>
+                              <div className="font-medium">{trip.airline}</div>
+                              <div className="text-gray-500">Flight Number</div>
+                              <div>{trip.flight_number}</div>
+                              <div className="text-gray-500">Cabin Class</div>
+                              <div>{trip.cabin_class}</div>
+                              <div className="text-gray-500">Trip Type</div>
+                              <div>{trip.trip_type}</div>
+
+                              {/* Direction information */}
+                              {trip.trip_type === TripType.RoundTrip && (
+                                <>
+                                  <div className="text-gray-500 col-span-2 mt-2 border-t pt-2 font-medium">
+                                    Journey Details
+                                  </div>
+                                  <div className="text-gray-500">Outbound</div>
+                                  <div className="flex items-center">
+                                    <span>{trip.from}</span>
+                                    <ArrowRight className="h-3 w-3 mx-1" />
+                                    <span>{trip.to}</span>
+                                  </div>
+                                  <div className="text-gray-500">Return</div>
+                                  <div className="flex items-center">
+                                    <span>{trip.to}</span>
+                                    <ArrowRight className="h-3 w-3 mx-1" />
+                                    <span>{trip.from}</span>
+                                  </div>
+                                </>
+                              )}
+
+                              <div className="text-gray-500">Duration</div>
+                              <div>{trip.duration}</div>
+                              <div className="text-gray-500">Stops</div>
+                              <div>
+                                {trip.stops === 0
+                                  ? "Non-stop"
+                                  : `${trip.stops} stop(s)`}
+                              </div>
+                              <div className="text-gray-500">Passengers</div>
+                              <div>{trip.passengers}</div>
+                              <div className="text-gray-500">Total Price</div>
+                              <div className="font-medium">
+                                ₹{trip.total_price.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Return Flight Information (if applicable) */}
+                          {trip.return_departure_date &&
+                            trip.trip_type !== TripType.OneWay && (
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <h4 className="text-sm font-semibold text-gray-700 flex items-center mb-3">
+                                  <Plane className="h-4 w-4 mr-2 transform rotate-180" />{" "}
+                                  Return Flight
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <div className="text-gray-500">
+                                    Return Date
+                                  </div>
+                                  <div>
+                                    {formatDate(trip.return_departure_date)}
+                                  </div>
+                                  {trip.return_departure_time && (
+                                    <>
+                                      <div className="text-gray-500">
+                                        Departure Time
+                                      </div>
+                                      <div>{trip.return_departure_time}</div>
+                                    </>
+                                  )}
+                                  {trip.return_arrival_time && (
+                                    <>
+                                      <div className="text-gray-500">
+                                        Arrival Time
+                                      </div>
+                                      <div>{trip.return_arrival_time}</div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                          {/* Stop Locations (if any) */}
+                          {trip.flight_details &&
+                            trip.flight_details.stop_locations &&
+                            trip.flight_details.stop_locations.length > 0 && (
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <h4 className="text-sm font-semibold text-gray-700 flex items-center mb-3">
+                                  <Clock className="h-4 w-4 mr-2" /> Stop
+                                  Information
+                                </h4>
+                                <div className="text-sm">
+                                  <div className="text-gray-500 mb-1">
+                                    Stop Location(s)
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {trip.flight_details.stop_locations.map(
+                                      (stop, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="px-2 py-1 bg-gray-100 rounded-md"
+                                        >
+                                          {stop}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-4">
                     <div className="flex items-center">

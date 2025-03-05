@@ -119,7 +119,6 @@ export default function BookingModal({
   };
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Booking submitted:", data);
     const from = searchParams.get("from") || flight.departure_airport;
     const to = searchParams.get("to") || flight.arrival_airport;
     const tripType = searchParams.get("tripType") || "oneway";

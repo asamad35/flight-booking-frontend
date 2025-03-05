@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { twMerge } from "tailwind-merge";
 
@@ -52,5 +53,16 @@ export const getTokenFromCookieAtServer = (request: NextRequest) => {
   const cookieHeader = request.headers.get("cookie") || "";
   const cookies = cookieHeader.split(";");
   const token = extractSupabaseSession(cookies);
+  return token;
+};
+
+export const getTokenFromCookieAtClient = (cookies: any) => {
+  const token = JSON.parse(
+    cookies()
+      .getAll()
+      .filter((cookie: any) => cookie.name.includes("auth-token"))
+      .map((cookie: any) => cookie.value)
+      .join("")
+  ).access_token;
   return token;
 };
