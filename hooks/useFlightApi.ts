@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { flightApi } from "@/lib/api/flight-api";
-import { SearchParams, BookingData } from "@/contexts/FlightContext";
+import { SearchParams, BookingData } from "@/types/flight";
 
 // Define a type for API functions
 type ApiFunction<T> = (...args: any[]) => Promise<T>;
@@ -42,7 +42,7 @@ export function useFlightApi() {
     error,
     getOriginCities: () => apiCall(flightApi.getOriginCities),
     getDestinationCities: () => apiCall(flightApi.getDestinationCities),
-    searchFlights: (params: SearchParams) =>
+    searchFlights: (params?: SearchParams) =>
       apiCall(flightApi.searchFlights, params),
     bookFlight: (data: BookingData) => apiCall(flightApi.bookFlight, data),
     generateTicket: (bookingId: string) =>

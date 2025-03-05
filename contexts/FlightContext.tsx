@@ -2,6 +2,13 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useFlightApi } from "@/hooks/useFlightApi";
+import {
+  initializeDB,
+  storeFlights,
+  getFlights,
+  hasFlightData,
+} from "@/utils/indexedDB";
+import { Flight, SearchParams, BookingData } from "@/types/flight";
 
 // Context type definition
 interface FlightContextType {
@@ -10,7 +17,7 @@ interface FlightContextType {
   updateSearchParams: (params: SearchParams) => void;
 
   // Flight results
-  flights: any[];
+  flights: Flight[];
   loading: boolean;
   error: string | null;
 
@@ -19,7 +26,7 @@ interface FlightContextType {
   destinationCities: any[];
 
   // API functions
-  searchFlights: (params?: SearchParams) => Promise<any>;
+  searchFlights: (params?: SearchParams) => Promise<Flight[]>;
   bookFlight: (data: BookingData) => Promise<any>;
   getUserBookings: () => Promise<any>;
   getBookingDetails: (id: string) => Promise<any>;
@@ -34,41 +41,6 @@ interface FlightContextType {
   // User bookings
   userBookings: any[];
   refreshUserBookings: () => Promise<void>;
-}
-
-// Define booking data interface
-export interface BookingData {
-  flightId: string;
-  from: string;
-  to: string;
-  tripType: string;
-  departureDate: string;
-  returnDate?: string;
-  passengers: number;
-  cabinClass: string;
-  passengerDetails: {
-    fullName: string;
-    phoneNumber: string;
-    idNumber: string;
-  }[];
-  paymentDetails: {
-    cardNumber: string;
-    expiryDate: string;
-    cvv: string;
-    nameOnCard: string;
-  };
-  [key: string]: any; // Allow for additional properties
-}
-
-// Near the top of the file, add this interface:
-export interface SearchParams {
-  from: string;
-  to: string;
-  departureDate: string;
-  returnDate?: string;
-  passengers: string;
-  cabinClass: string;
-  tripType: string;
 }
 
 // Create the context
@@ -87,7 +59,7 @@ export const FlightProvider: React.FC<{ children: React.ReactNode }> = ({
     cabinClass: "Economy",
     tripType: "OneWay",
   });
-  const [flights, setFlights] = useState([]);
+  const [flights, setFlights] = useState<Flight[]>([]);
   const [originCities, setOriginCities] = useState([]);
   const [destinationCities, setDestinationCities] = useState([]);
   const [selectedFlight, setSelectedFlight] = useState(null);
@@ -109,9 +81,75 @@ export const FlightProvider: React.FC<{ children: React.ReactNode }> = ({
     },
   });
   const [userBookings, setUserBookings] = useState([]);
+  const [isIndexedDBInitialized, setIsIndexedDBInitialized] = useState(false);
 
   // Use the API hook
   const flightApi = useFlightApi();
+
+  // Initialize IndexedDB and store dummy data if necessary
+  useEffect(() => {
+    const initIndexedDB = async () => {
+      try {
+        // Initialize IndexedDB
+        await initializeDB();
+
+        // Check if we already have data in IndexedDB
+        const hasData = await hasFlightData();
+
+        if (!hasData) {
+          // Try to fetch real data first
+          try {
+            const results = await flightApi.searchFlights();
+
+            if (results && results.length > 0) {
+              await storeFlights(results);
+            } else {
+              // Store dummy data if no real data is available
+              await storeDummyData();
+            }
+          } catch (error) {
+            console.error(
+              "Failed to fetch flight data for IndexedDB, using dummy data:",
+              error
+            );
+            await storeDummyData();
+          }
+        }
+
+        setIsIndexedDBInitialized(true);
+      } catch (error) {
+        console.error("IndexedDB initialization failed:", error);
+      }
+    };
+
+    // Dummy data for offline fallback
+    const storeDummyData = async () => {
+      const dummyFlights = [
+        {
+          id: "FL0001",
+          airline: "Air India",
+          airline_code: "AI",
+          airline_logo: "air-india-logo.png",
+          flight_number: "AI288",
+          departure_airport: "DEL",
+          arrival_airport: "BOM",
+          departure_time: "08:15",
+          arrival_time: "09:16",
+          departure_date: "2025-03-05",
+          duration: "1h 1m",
+          duration_minutes: 61,
+          stops: 0,
+          stop_locations: [],
+          price: 5531,
+          destination: "Mumbai",
+        },
+      ];
+
+      await storeFlights(dummyFlights);
+    };
+
+    initIndexedDB();
+  }, []);
 
   // Fetch origin and destination cities on component mount
   useEffect(() => {
@@ -154,12 +192,33 @@ export const FlightProvider: React.FC<{ children: React.ReactNode }> = ({
     setBookingData((prev) => ({ ...prev, ...data }));
   };
 
-  // Search flights with current params
+  // Search flights with current params and use IndexedDB as fallback
   const searchFlights = async (params?: SearchParams) => {
     const searchData = params || searchParams;
-    const results = await apiSearchFlights(searchData);
-    setFlights(results);
-    return results;
+    try {
+      // First try to get data from API
+      const results = await apiSearchFlights(searchData);
+      setFlights(results);
+      return results;
+    } catch (error) {
+      console.error("API search failed, using IndexedDB fallback:", error);
+
+      try {
+        // If API fails, try to get data from IndexedDB
+        if (isIndexedDBInitialized) {
+          const offlineResults = await getFlights(searchData);
+          setFlights(offlineResults);
+          return offlineResults;
+        } else {
+          throw new Error("IndexedDB not initialized");
+        }
+      } catch (dbError) {
+        console.error("IndexedDB fallback failed:", dbError);
+        // If both API and IndexedDB fail, return empty array
+        setFlights([]);
+        return [];
+      }
+    }
   };
 
   // Book selected flight

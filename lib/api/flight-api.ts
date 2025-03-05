@@ -1,8 +1,9 @@
 "use client";
 
 import axios, { InternalAxiosRequestConfig } from "axios";
-import { SearchParams, BookingData } from "@/contexts/FlightContext";
+import { SearchParams, BookingData } from "@/types/flight";
 import { extractSupabaseSession } from "../utils";
+import { getFlights } from "@/utils/indexedDB";
 
 // Configure base API
 const API_URL =
@@ -42,8 +43,32 @@ export const flightApi = {
 
   // 2. Search flights with all filters
   searchFlights: async (searchParams: SearchParams) => {
-    const response = await api.get("/flights", { params: searchParams });
-    return response.data.flights;
+    try {
+      // throw new Error("test");
+      const response = await api.get("/flights", { params: searchParams });
+      return response.data.flights;
+    } catch (error) {
+      console.error(
+        "Flight API search failed, attempting IndexedDB fallback",
+        error
+      );
+      // Try to use IndexedDB as fallback
+      try {
+        // Only attempt IndexedDB fallback in the browser environment
+        if (typeof window !== "undefined" && window.indexedDB) {
+          const offlineFlights = await getFlights(searchParams);
+          if (offlineFlights && offlineFlights.length > 0) {
+            console.log("Using IndexedDB fallback data");
+            return offlineFlights;
+          }
+        }
+      } catch (dbError) {
+        console.error("IndexedDB fallback also failed", dbError);
+      }
+
+      // Re-throw the original error if IndexedDB fallback fails
+      throw error;
+    }
   },
 
   // 3. Book a flight with passenger details and payment info

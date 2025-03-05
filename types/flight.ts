@@ -1,3 +1,5 @@
+// Shared flight-related types
+
 export interface Flight {
   id: string;
   airline: string;
@@ -12,8 +14,42 @@ export interface Flight {
   duration: string;
   duration_minutes: number;
   stops: number;
-  stop_locations?: string[];
+  stop_locations: string[];
   price: number;
+  destination: string;
+}
+
+export interface SearchParams {
+  from: string;
+  to: string;
+  departureDate: string;
+  returnDate?: string;
+  passengers: string;
+  cabinClass: string;
+  tripType: string;
+}
+
+export interface BookingData {
+  flightId: string;
+  from: string;
+  to: string;
+  tripType: string;
+  departureDate: string;
+  returnDate?: string;
+  passengers: number;
+  cabinClass: string;
+  passengerDetails: {
+    fullName: string;
+    phoneNumber: string;
+    idNumber: string;
+  }[];
+  paymentDetails: {
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+    nameOnCard: string;
+  };
+  [key: string]: any; // Allow for additional properties
 }
 
 export interface FlightResultsProps {
