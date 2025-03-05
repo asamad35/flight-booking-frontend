@@ -6,9 +6,17 @@ import FlightAlternatives from "@/components/flights/FlightAlternatives";
 import Footer from "@/components/layout/Footer";
 import { useFlightContext } from "@/contexts/FlightContext";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 export default function SearchFlightPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchFlightContent />
+    </Suspense>
+  );
+}
+
+function SearchFlightContent() {
   const { updateSearchParams, searchFlights, flights, loading } =
     useFlightContext();
 
@@ -46,21 +54,6 @@ export default function SearchFlightPage() {
     cabinClass: cabinClass,
     tripType: tripType,
   });
-
-  // Handle input changes
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    updateSearchParams(formData);
-    await searchFlights(formData);
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-sky-50 to-white">

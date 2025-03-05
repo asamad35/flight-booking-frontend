@@ -1,23 +1,21 @@
 "use client";
 
-import { useContext, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { flightApi } from "@/lib/api/flight-api";
+import { BookingData, Flight } from "@/types/flight";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import PassengerForm from "./PassengerForm";
 import PaymentForm from "./PaymentForm";
-import { Flight } from "@/types/flight";
-import { useFlightContext } from "@/contexts/FlightContext";
-import { BookingData } from "@/contexts/FlightContext";
-import { useSearchParams } from "next/navigation";
-import { toast } from "react-hot-toast";
-import { flightApi } from "@/lib/api/flight-api";
 
 interface BookingModalProps {
   isOpen: boolean;
