@@ -1,38 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
-import { createServerClient } from "@supabase/ssr";
+import { NextRequest, NextResponse } from "next/server";
+import { getTokenFromCookieAtServer } from "./lib/utils";
 
 export async function middleware(request: NextRequest) {
   // First update the session (existing functionality)
   const response = await updateSession(request);
 
-  // Now check if user is logged in and trying to access login page
-  const requestUrl = new URL(request.url);
-  const isLoginPage = requestUrl.pathname === "/login";
+  // Check if the request is for the dashboard route
+  if (request.nextUrl.pathname.startsWith("/dashboard")) {
+    try {
+      // Get the authorization token from the request cookies
+      const authToken = getTokenFromCookieAtServer(request);
 
-  if (isLoginPage) {
-    // Create Supabase client to check auth status
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name) {
-            return request.cookies.get(name)?.value;
-          },
-          set() {}, // We don't need to set cookies here
-          remove() {}, // We don't need to remove cookies here
-        },
+      if (!authToken) {
+        return NextResponse.redirect(new URL("/", request.url));
       }
-    );
 
-    // Check if user is logged in
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      // Make a direct fetch call to your API
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL + "/api/users/me";
+      const userResponse = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (!userResponse.ok) {
+        return NextResponse.redirect(new URL("/", request.url));
+      }
 
-    // If user is logged in and trying to access login page, redirect to home
-    if (session) {
+      const currentUser = await userResponse.json();
+
+      // If user is not an admin, redirect to home page
+      if (currentUser?.role !== "admin") {
+        return NextResponse.redirect(new URL("/", request.url));
+      }
+    } catch (error) {
+      // If there's an error (like user not authenticated), redirect to home
       return NextResponse.redirect(new URL("/", request.url));
     }
   }

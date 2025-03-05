@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useAppContext } from "@/contexts/AppContext";
 import { useRouter } from "next/navigation";
@@ -13,29 +13,36 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { userApi } from "@/lib/api/user-api";
 
 export interface User {
   id: string;
   email?: string;
   first_name?: string;
   last_name?: string;
+  role?: string;
 }
 
-interface NavigationProps {
-  user?: User | null; // Make user optional since we'll get it from context
-}
-
-export default function Navigation({ user: userFromProps }: NavigationProps) {
+export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAppContext();
+  const [currentUserInDb, setCurrentUserInDb] = useState<User | null>(null);
+  useEffect(() => {
+    // call the api to get the user
+    const getCurrentUser = async () => {
+      const response = await userApi.getCurrentUser();
+      setCurrentUserInDb(response);
+    };
+    getCurrentUser();
+  }, []);
+  console.log(currentUserInDb, "currentUserInDb");
 
   // Use user from props if provided, otherwise use from context
-  const currentUser = userFromProps ?? user;
+  const currentUser = user;
   const router = useRouter();
 
-  // Check if user is admin (assuming the user object has a role or isAdmin property)
-  // const isAdmin = currentUser?.role === "admin" || currentUser?.isAdmin;
-  const isAdmin = true;
+  // Check if user is admin
+  const isAdmin = currentUserInDb?.role === "admin";
 
   const handleLogout = async () => {
     await signOut();
