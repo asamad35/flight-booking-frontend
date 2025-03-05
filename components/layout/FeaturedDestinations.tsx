@@ -76,7 +76,7 @@ export default function FeaturedDestinations({
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-500">Starting from</p>
-                  <p className="text-xl font-bold">${destination.price}</p>
+                  <p className="text-xl font-bold">Rs {destination.price}</p>
                 </div>
                 <Button size="sm">Explore</Button>
               </div>
