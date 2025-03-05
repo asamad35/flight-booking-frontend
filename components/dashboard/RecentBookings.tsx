@@ -88,7 +88,8 @@ export default function RecentBookings({ bookings }: RecentBookingsProps) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center text-gray-900 font-medium">
-                    <CreditCard className="h-4 w-4 mr-1 text-gray-400" />$
+                    <CreditCard className="h-4 w-4 mr-1 text-gray-400" />
+                    Rs
                     {booking.amount.toFixed(2)}
                   </div>
                 </td>

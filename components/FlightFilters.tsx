@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -26,11 +26,11 @@ export interface FlightFilterState {
 export default function FlightFilters({
   filters,
   onFilterChange,
+  originalPriceRange = [0, 2000],
 }: {
   filters?: FlightFilterState;
   onFilterChange?: (filters: FlightFilterState) => void;
-  availableAirlines?: Record<string, boolean>;
-  priceRange?: [number, number];
+  originalPriceRange?: [number, number];
 } = {}) {
   const defaultFilters: FlightFilterState = {
     priceRange: [0, 2000],
@@ -49,6 +49,12 @@ export default function FlightFilters({
   const [localFilters, setLocalFilters] = useState<FlightFilterState>(
     filters || defaultFilters
   );
+
+  useEffect(() => {
+    if (filters) {
+      setLocalFilters(filters);
+    }
+  }, [filters]);
 
   // Apply filters only when the button is clicked
   const applyFilters = () => {
@@ -79,10 +85,12 @@ export default function FlightFilters({
                   ${localFilters.priceRange[0]} - ${localFilters.priceRange[1]}
                 </span>
               </div>
+
+              {/* Single price slider */}
               <input
                 type="range"
-                min={filters?.priceRange?.[0] || 0}
-                max={filters?.priceRange?.[1] || 2000}
+                min={originalPriceRange[0]}
+                max={originalPriceRange[1]}
                 step="1"
                 value={localFilters.priceRange[1]}
                 onChange={(e) =>

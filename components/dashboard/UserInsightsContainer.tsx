@@ -228,13 +228,13 @@ export default function UserInsightsContainer({
     },
     {
       title: "Total Spent",
-      value: `$${userDetail.total_spent.toLocaleString()}`,
+      value: `Rs ${userDetail.total_spent.toLocaleString()}`,
       icon: <CreditCard className="h-5 w-5 text-green-500" />,
       change: "+12% vs last year",
     },
     {
       title: "Avg. Trip Cost",
-      value: `$${Math.round(
+      value: `Rs ${Math.round(
         userDetail.total_spent / userDetail.total_trips
       ).toLocaleString()}`,
       icon: <TrendingUp className="h-5 w-5 text-purple-500" />,

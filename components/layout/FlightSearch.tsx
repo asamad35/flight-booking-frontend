@@ -15,7 +15,6 @@ import { addDays, format, isAfter, isBefore } from "date-fns";
 import { CalendarDays, MapPin, Search } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { useFlightContext } from "@/contexts/FlightContext";
 import SearchableSelect from "@/components/SearchableSelect";
 import { TripType, CabinClass } from "@/enums";
 

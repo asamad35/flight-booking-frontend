@@ -73,7 +73,7 @@ export default function SearchableSelect({
       setSearchTerm(destinationCities[1].name);
       onChange(destinationCities[1].code);
     }
-  }, [type, value, originCities, destinationCities]);
+  }, [originCities, destinationCities]);
 
   const filteredCities = cities.filter(
     (city) =>

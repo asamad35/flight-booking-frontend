@@ -2,21 +2,10 @@
 
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Trip {
-  id: string;
-  from: string;
-  to: string;
-  date: string;
-  status: "completed" | "upcoming" | "cancelled";
-  flightNumber: string;
-}
-
-interface UpcomingTripsProps {
-  trips: Trip[];
-}
+import { Booking, UpcomingTripsProps } from "@/types/profile";
 
 export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
+  console.log(trips, "upcoming trips");
   // Format date to be more readable
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -61,7 +50,7 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
         ) : (
           <div className="space-y-6">
             {trips.map((trip) => {
-              const daysRemaining = calculateDaysRemaining(trip.date);
+              const daysRemaining = calculateDaysRemaining(trip.departure_date);
               return (
                 <div
                   key={trip.id}
@@ -70,7 +59,7 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
-                        {trip.flightNumber}
+                        {trip.flight_number}
                       </span>
                       <h3 className="text-lg font-medium text-gray-800 mt-2">
                         {trip.from}{" "}
@@ -78,7 +67,7 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                       </h3>
                       <div className="flex items-center mt-1 text-gray-500">
                         <Calendar className="h-4 w-4 mr-1" />
-                        <span>{formatDate(trip.date)}</span>
+                        <span>{formatDate(trip.departure_date)}</span>
                       </div>
                     </div>
 
@@ -115,14 +104,18 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                       <Clock className="h-4 w-4 text-gray-400 mr-2" />
                       <div>
                         <div className="text-sm text-gray-600">Departure</div>
-                        <div className="text-sm font-medium">10:30 AM</div>
+                        <div className="text-sm font-medium">
+                          {trip.departure_time}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 text-gray-400 mr-2" />
                       <div>
                         <div className="text-sm text-gray-600">Arrival</div>
-                        <div className="text-sm font-medium">2:45 PM</div>
+                        <div className="text-sm font-medium">
+                          {trip.arrival_time}
+                        </div>
                       </div>
                     </div>
                   </div>

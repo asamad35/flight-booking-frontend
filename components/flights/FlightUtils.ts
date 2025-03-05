@@ -1,80 +1,5 @@
 import { Flight } from "@/types/flight";
 
-export const generateFlights = (
-  from: string,
-  to: string,
-  date: string,
-  count = 10
-): Flight[] => {
-  const airlines = [
-    { name: "Delta", logo: "https://placehold.co/30x30?text=DL" },
-    { name: "United", logo: "https://placehold.co/30x30?text=UA" },
-    { name: "American", logo: "https://placehold.co/30x30?text=AA" },
-    { name: "Spirit", logo: "https://placehold.co/30x30?text=NK" },
-    { name: "JetBlue", logo: "https://placehold.co/30x30?text=B6" },
-  ];
-
-  const stopLocations = [
-    "ATL",
-    "ORD",
-    "DFW",
-    "DEN",
-    "LAX",
-    "JFK",
-    "MIA",
-    "SFO",
-    "CLT",
-    "LAS",
-  ];
-
-  return Array.from({ length: count }, (_, i) => {
-    const airline = airlines[Math.floor(Math.random() * airlines.length)];
-    const airlineCode = airline.name.slice(0, 2).toUpperCase();
-    const flightNumber = `${airlineCode}${
-      Math.floor(Math.random() * 1000) + 1000
-    }`;
-    const durationMinutes = Math.floor(Math.random() * 240) + 60; // 1-5 hours
-    const hours = Math.floor(durationMinutes / 60);
-    const minutes = durationMinutes % 60;
-    const duration = `${hours}h ${minutes}m`;
-
-    const departureHour = Math.floor(Math.random() * 20) + 4; // 4 AM to 11 PM
-    const departureMinute = Math.floor(Math.random() * 60);
-    const departureTime = `${departureHour
-      .toString()
-      .padStart(2, "0")}:${departureMinute.toString().padStart(2, "0")}`;
-
-    const arrivalHourRaw =
-      departureHour + hours + (departureMinute + minutes >= 60 ? 1 : 0);
-    const arrivalHour = arrivalHourRaw % 24;
-    const arrivalMinute = (departureMinute + minutes) % 60;
-    const arrivalTime = `${arrivalHour
-      .toString()
-      .padStart(2, "0")}:${arrivalMinute.toString().padStart(2, "0")}`;
-
-    const stops = Math.floor(Math.random() * 3); // 0, 1, or 2 stops
-    const price = Math.floor(Math.random() * 600) + 200; // $200-$800
-
-    return {
-      id: `flight-${i}`,
-      airline: airline.name,
-      airlineCode,
-      airlineLogo: airline.logo,
-      flightNumber,
-      departureAirport: from,
-      arrivalAirport: to,
-      departureTime,
-      arrivalTime,
-      departureDate: date,
-      duration,
-      durationMinutes,
-      stops,
-      stopLocations: stops > 0 ? stopLocations.slice(0, stops) : [],
-      price,
-    };
-  });
-};
-
 export const applyFilters = (flights: Flight[], filterState: any) => {
   return flights.filter((flight) => {
     if (
@@ -98,8 +23,8 @@ export const applyFilters = (flights: Flight[], filterState: any) => {
     if (!filterState.airlines[airlineKey]) {
       return false;
     }
-
-    const hour = parseInt(flight.departureTime.split(":")[0]);
+    console.log(flight, flight.departure_time);
+    const hour = parseInt(flight.departure_time.split(":")[0]);
     const isMorning = hour >= 5 && hour < 12;
     const isAfternoon = hour >= 12 && hour < 17;
     const isEvening = hour >= 17 || hour < 5;
@@ -129,19 +54,19 @@ export const sortFlights = (
       return sortedFlights.sort((a, b) => b.price - a.price);
     case "duration_asc":
       return sortedFlights.sort(
-        (a, b) => a.durationMinutes - b.durationMinutes
+        (a, b) => a.duration_minutes - b.duration_minutes
       );
     case "departure_asc":
       return sortedFlights.sort((a, b) =>
-        a.departureTime.localeCompare(b.departureTime)
+        a.departure_time.localeCompare(b.departure_time)
       );
     case "departure_desc":
       return sortedFlights.sort((a, b) =>
-        b.departureTime.localeCompare(a.departureTime)
+        b.departure_time.localeCompare(a.departure_time)
       );
     case "arrival_asc":
       return sortedFlights.sort((a, b) =>
-        a.arrivalTime.localeCompare(b.arrivalTime)
+        a.arrival_time.localeCompare(b.arrival_time)
       );
     default:
       return sortedFlights;

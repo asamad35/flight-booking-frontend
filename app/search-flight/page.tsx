@@ -92,11 +92,11 @@ export default function SearchFlightPage() {
               loading={loading}
               from={formData.from}
               to={formData.to}
-              departureDate={formData.departureDate}
-              returnDate={formData.returnDate}
+              departure_date={formData.departureDate}
+              return_date={formData.returnDate}
               passengers={formData.passengers}
-              cabinClass={formData.cabinClass}
-              tripType={formData.tripType}
+              cabin_class={formData.cabinClass}
+              trip_type={formData.tripType}
               flights={flights}
             />
           </div>

@@ -3,11 +3,7 @@
 import { useState, useEffect } from "react";
 import { Flight, FlightResultsProps } from "@/types/flight";
 import { FlightFilterState } from "./FlightFilters";
-import {
-  generateFlights,
-  applyFilters,
-  sortFlights,
-} from "./flights/FlightUtils";
+import { applyFilters, sortFlights } from "./flights/FlightUtils";
 import FlightSkeleton from "./flights/FlightSkeleton";
 import EmptyResults from "./flights/EmptyResults";
 import FlightCard from "./flights/FlightCard";
@@ -17,11 +13,11 @@ export default function FlightResults({
   loading,
   from,
   to,
-  departureDate,
-  returnDate,
+  departure_date,
+  return_date,
   passengers,
-  cabinClass,
-  tripType,
+  cabin_class,
+  trip_type,
   flights: propFlights,
 }: FlightResultsProps) {
   const [allFlights, setAllFlights] = useState<Flight[]>([]);
@@ -48,8 +44,10 @@ export default function FlightResults({
     },
   });
 
-  // Extract price range and airlines for filter initializations
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  // Track original price range from all flights separately from filtered range
+  const [originalPriceRange, setOriginalPriceRange] = useState<
+    [number, number]
+  >([0, 2000]);
   const [availableAirlines, setAvailableAirlines] = useState<
     Record<string, boolean>
   >({});
@@ -69,13 +67,15 @@ export default function FlightResults({
       airlinesObject[flight.airline.toLowerCase()] = true;
     });
 
-    // Update filters and metadata
+    // Update original price range only once from all flights
+    setOriginalPriceRange([minPrice, maxPrice]);
+
+    // Update filters and metadata - initialize with full range
     setFilters((prev) => ({
       ...prev,
       priceRange: [minPrice, maxPrice],
       airlines: airlinesObject,
     }));
-    setPriceRange([minPrice, maxPrice]);
     setAvailableAirlines(airlinesObject);
   };
 
@@ -86,14 +86,12 @@ export default function FlightResults({
 
       if (propFlights && propFlights.length > 0) {
         flightsToUse = propFlights;
-      } else {
-        flightsToUse = generateFlights(from, to, departureDate, 15);
       }
 
       setAllFlights(flightsToUse);
       generateDynamicFilters(flightsToUse);
     }
-  }, [loading, from, to, departureDate, propFlights]);
+  }, [loading, from, to, departure_date, propFlights]);
 
   // Listen for sort option changes from FlightSortOptions
   useEffect(() => {
@@ -124,6 +122,8 @@ export default function FlightResults({
   // Apply filters and sorting to flights
   useEffect(() => {
     if (allFlights.length > 0) {
+      // Create a copy of filters that uses the original price range for max value
+      // This ensures the filter UI keeps its original range
       let filtered = applyFilters(allFlights, filters);
       filtered = sortFlights(filtered, sortOption);
       setFilteredFlights(filtered);
@@ -140,8 +140,7 @@ export default function FlightResults({
         <FlightFilters
           filters={filters}
           onFilterChange={handleFilterChange}
-          availableAirlines={availableAirlines}
-          priceRange={priceRange}
+          originalPriceRange={originalPriceRange}
         />
       </div>
       {filteredFlights.length === 0 && (

@@ -120,11 +120,11 @@ export default function BookingModal({
 
   const onSubmit = async (data: FormValues) => {
     console.log("Booking submitted:", data);
-    const from = searchParams.get("from") || flight.departureAirport;
-    const to = searchParams.get("to") || flight.arrivalAirport;
+    const from = searchParams.get("from") || flight.departure_airport;
+    const to = searchParams.get("to") || flight.arrival_airport;
     const tripType = searchParams.get("tripType") || "oneway";
     const departureDate =
-      searchParams.get("departureDate") || flight.departureDate;
+      searchParams.get("departureDate") || flight.departure_date;
     const returnDate = searchParams.get("returnDate") || null;
     const cabinClass = searchParams.get("cabinClass") || "economy";
     const bookingData: BookingData = {
@@ -141,7 +141,6 @@ export default function BookingModal({
     };
 
     try {
-      // await bookFlight(bookingData);
       await flightApi.bookFlight(bookingData);
       toast.success("Booking successful, Please check your profile for ticket");
       setStep("passengers");
@@ -217,23 +216,23 @@ export default function BookingModal({
                     <div>
                       <p className="text-gray-500">From - To</p>
                       <p>
-                        {flight.departureAirport} - {flight.arrivalAirport}
+                        {flight.departure_airport} - {flight.arrival_airport}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Date</p>
-                      <p>{flight.departureDate}</p>
+                      <p>{flight.departure_date}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Time</p>
                       <p>
-                        {flight.departureTime} - {flight.arrivalTime}
+                        {flight.departure_time} - {flight.arrival_time}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Total Price</p>
                       <p className="font-bold text-blue-600">
-                        ${flight.price * passengerCount}
+                        Rs {flight.price * passengerCount}
                       </p>
                     </div>
                   </div>

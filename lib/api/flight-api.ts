@@ -2,6 +2,7 @@
 
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { SearchParams, BookingData } from "@/contexts/FlightContext";
+import { extractSupabaseSession } from "../utils";
 
 // Configure base API
 const API_URL =
@@ -13,46 +14,13 @@ const api = axios.create({
   },
 });
 
-// Function to extract and combine multi-part cookies
-const extractSupabaseSession = () => {
-  const cookies = document.cookie.split(";");
-  try {
-    // Find all auth token parts (they're likely named something like sb-<project>-auth-token.0, sb-<project>-auth-token.1)
-    const authCookieParts = cookies
-      .map((cookie) => cookie.trim())
-      .filter((cookie) => cookie.includes("-auth-token"));
-
-    if (authCookieParts.length === 0) return null;
-
-    // Sort by part index and combine
-    const sortedParts = authCookieParts.sort((a, b) => {
-      const indexA = parseInt(a.split(".").pop() || "0");
-      const indexB = parseInt(b.split(".").pop() || "0");
-      return indexA - indexB;
-    });
-
-    // Extract and combine values
-    let combinedValue = "";
-    for (const part of sortedParts) {
-      const value = part.substring(part.indexOf("=") + 1);
-      combinedValue += decodeURIComponent(value);
-    }
-
-    // Parse the JSON and extract access_token
-    const sessionData = JSON.parse(combinedValue);
-    return sessionData.access_token;
-  } catch (error) {
-    console.error("Error extracting session:", error);
-    return null;
-  }
-};
-
 // Add auth interceptor to include JWT token in requests
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
     // Extract token from cookies instead of localStorage
-
-    const token = extractSupabaseSession();
+    const cookies = document.cookie.split(";");
+    const token = extractSupabaseSession(cookies);
+    console.log(token, "token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

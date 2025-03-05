@@ -34,7 +34,7 @@ export default function UserActivityChart({ data }: UserActivityChartProps) {
         <div className="text-sm text-gray-500">
           {viewMode === "bookings"
             ? "Number of bookings by month"
-            : "Spending amount by month ($)"}
+            : "Spending amount by month (Rs)"}
         </div>
         <div className="flex space-x-2">
           <Button

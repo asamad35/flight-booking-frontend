@@ -1,21 +1,10 @@
 "use client";
 
 import { Calendar, Plane } from "lucide-react";
-
-interface Trip {
-  id: string;
-  from: string;
-  to: string;
-  date: string;
-  status: "completed" | "upcoming" | "cancelled";
-  flightNumber: string;
-}
-
-interface TravelHistoryProps {
-  trips: Trip[];
-}
+import { Booking, TravelHistoryProps } from "@/types/profile";
 
 export default function TravelHistory({ trips }: TravelHistoryProps) {
+  console.log(trips, "trips");
   // Format date to be more readable
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -57,12 +46,12 @@ export default function TravelHistory({ trips }: TravelHistoryProps) {
                         {trip.from} to {trip.to}
                       </h3>
                       <span className="ml-3 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                        {trip.flightNumber}
+                        {trip.flight_number}
                       </span>
                     </div>
                     <div className="flex items-center mt-2 text-gray-500 text-sm">
                       <Calendar className="h-3 w-3 mr-1" />
-                      <span>{formatDate(trip.date)}</span>
+                      <span>{formatDate(trip.departure_date)}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
@@ -87,7 +76,9 @@ export default function TravelHistory({ trips }: TravelHistoryProps) {
                       <span className="text-sm text-gray-500">{trip.to}</span>
                     </div>
                   </div>
-                  <div className="text-gray-400 text-xs">Duration: ~8h 30m</div>
+                  <div className="text-gray-400 text-xs">
+                    Duration: {trip.duration}
+                  </div>
                 </div>
               </div>
             ))}
